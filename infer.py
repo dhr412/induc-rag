@@ -1,6 +1,7 @@
-import json
+import json, io
 import polars as pl
 from datasets import load_dataset
+import requests
 from groq import Groq
 import os
 from dotenv import load_dotenv

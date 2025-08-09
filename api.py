@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from infer import ask_question
+from infer import ask_question, get_hint
 
 app = FastAPI()
 
