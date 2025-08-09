@@ -7,12 +7,52 @@ from dotenv import load_dotenv
 
 ds = load_dataset("AiresPucrs/tmdb-5000-movies", split="train")
 data = ds.to_dict()
-df = pl.DataFrame(data).with_columns([
+df_tmdb = pl.DataFrame(data).with_columns([
     pl.col("popularity").cast(pl.Float64, strict=False)
-])
-top500 = df.sort("popularity", descending=True).head(500)
+]).sort("popularity", descending=True).head(150)
 
-selected_df = top500.sample(n=1)
+df_tmdb_filtered = df_tmdb.select([
+    pl.col("title").cast(pl.Utf8),
+    pl.col("release_date").cast(pl.Utf8),
+    pl.col("genres").cast(pl.Utf8),
+    pl.col("overview").cast(pl.Utf8),
+]).with_columns([
+    pl.lit(None).cast(pl.Utf8).alias("director")
+])
+
+bollywood_csv_url = "https://raw.githubusercontent.com/devensinghbhagtani/Bollywood-Movie-Dataset/main/IMDB-Movie-Dataset(2023-1951).csv"
+response = requests.get(bollywood_csv_url)
+response.raise_for_status()
+
+df_bollywood = pl.read_csv(io.BytesIO(response.content), ignore_errors=True)
+df_bollywood = df_bollywood.with_columns(
+    pl.col("year").cast(pl.Int64)
+)
+df_bollywood_filtered = df_bollywood.filter(
+    (pl.col("year") >= 2006) & (pl.col("year") <= 2019)
+)
+
+df_bollywood = df_bollywood_filtered.select([
+    pl.col("movie_name").alias("title").cast(pl.Utf8),
+    pl.col("year").alias("release_date").cast(pl.Utf8),
+    pl.col("genre").alias("genres").cast(pl.Utf8),
+    pl.col("overview").cast(pl.Utf8),
+    pl.col("director").cast(pl.Utf8),
+])
+df_tmdb_simple = df_tmdb_filtered.select([
+    "title",
+    "release_date",
+    "genres",
+    "overview",
+]).with_columns([
+    pl.lit(None).cast(pl.Utf8).alias("director")
+])
+
+df_bollywood_sample = df_bollywood.sample(n=150, seed=24)
+df_tmdb_sample = df_tmdb_simple.sample(n=150, seed=24)
+combined_df = pl.concat([df_tmdb_sample, df_bollywood_sample]).sample(fraction=1.0, shuffle=True)
+
+selected_df = combined_df.sample(n=1)
 movie = selected_df.to_dicts()[0]
 
 def _safe_load_json(s):
