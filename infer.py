@@ -91,3 +91,24 @@ def ask_question(user_question: str):
         stop=None
     )
     return completion.choices[0].message.content.strip()
+
+def get_hint():
+    hint_prompt = f"""
+You are an assistant helping someone guess a hidden movie based on the following factual information. 
+Please provide a single, short, subtle hint (like a famous quote, tagline, or interesting clue) that could help guess the movie, but do NOT reveal the movie title or any explicit spoilers.
+
+Movie facts:
+{facts_block}
+
+Hint:
+"""
+    hint_completion = client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[{"role": "user", "content": hint_prompt}],
+        temperature=0.7,
+        max_completion_tokens=50,
+        top_p=1,
+        stream=False,
+        stop=None
+    )
+    return hint_completion.choices[0].message.content.strip()

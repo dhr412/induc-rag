@@ -11,6 +11,9 @@ class AnswerResponse(BaseModel):
     answer: str
     game_over: bool = False
 
+class HintResponse(BaseModel):
+    hint: str
+
 @app.post("/ask", response_model=AnswerResponse)
 async def ask_movie_question(request: QuestionRequest):
     if not request.question.strip():
@@ -20,5 +23,13 @@ async def ask_movie_question(request: QuestionRequest):
         resp_lower = answer.lower()
         game_over = resp_lower.startswith("yes") and "correct" in resp_lower
         return {"answer": answer, "game_over": game_over}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/hint", response_model=HintResponse)
+async def get_movie_hint():
+    try:
+        hint = get_hint()
+        return {"hint": hint}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
