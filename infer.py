@@ -25,14 +25,23 @@ df_tmdb = pl.DataFrame(data).with_columns([
     pl.col("popularity").cast(pl.Float64, strict=False)
 ]).sort("popularity", descending=True).head(100)
 
+pop_min = df_tmdb["popularity"].min()
+pop_max = df_tmdb["popularity"].max()
+df_tmdb = df_tmdb.with_columns([
+    ((pl.col("popularity") - pop_min) / (pop_max - pop_min)).alias("popularity_norm")
+])
+
 df_tmdb_filtered = df_tmdb.select([
     pl.col("title").cast(pl.Utf8),
     pl.col("release_date").cast(pl.Utf8),
     pl.col("genres").cast(pl.Utf8),
     pl.col("overview").cast(pl.Utf8),
+    pl.col("tagline").cast(pl.Utf8),
+    pl.col("popularity_norm").alias("popularity").cast(pl.Float64)
 ]).with_columns([
     pl.lit(None).cast(pl.Utf8).alias("director")
 ])
+
 df_tmdb_filtered = df_tmdb_filtered.with_columns([
     pl.col("genres")
       .map_elements(lambda x: ", ".join([g["name"] for g in _safe_load_json(x)]), return_dtype=pl.Utf8)
@@ -56,6 +65,8 @@ df_bollywood = df_bollywood_filtered.select([
     pl.col("genre").alias("genres").cast(pl.Utf8),
     pl.col("overview").cast(pl.Utf8),
     pl.col("director").cast(pl.Utf8),
+    pl.lit(None).cast(pl.Utf8).alias("tagline"),
+    pl.lit(None).cast(pl.Float64).alias("popularity")
 ]).with_columns([
     pl.lit("Hindi").alias("language")
 ])
@@ -64,6 +75,9 @@ df_tmdb_simple = df_tmdb_filtered.select([
     "release_date",
     "genres",
     "overview",
+    "director",
+    "tagline",
+    "popularity"
 ]).with_columns([
     pl.lit(None).cast(pl.Utf8).alias("director"),
     pl.lit("English").alias("language")
@@ -95,6 +109,8 @@ def build_facts_and_instruction(movie):
     runtime = movie.get("runtime") or ""
     vote_average = movie.get("vote_average") or ""
     vote_count = movie.get("vote_count") or ""
+    tagline = movie.get("tagline") or ""
+    popularity_value = movie.get("popularity") or ""
 
     genres_list = [g.get("name") for g in _safe_load_json(movie.get("genres")) if isinstance(g, dict)]
     cast_list = [c.get("name") for c in _safe_load_json(movie.get("cast")) if isinstance(c, dict)]
@@ -104,13 +120,15 @@ def build_facts_and_instruction(movie):
     directors = directors or []
 
     facts = [
-        f"Overview: {overview.strip() or 'N/A'}",
+        f"Overview: {overview or 'N/A'}",
+        f"Tagline: {tagline or 'N/A'}",
         f"Release date: {release_date or 'N/A'}",
-        f"Genres: {movie.get('genres') if movie.get('genres') else 'N/A'}",
-        f"Main cast: {', '.join(main_cast) if main_cast else 'N/A'}",
-        f"Director(s): {', '.join(directors) if directors else 'N/A'}", 
+        f"Genres: {', '.join(genres_list) if genres_list else (movie.get('genres') or 'N/A')}",
+        f"Main cast (top billed): {', '.join(main_cast) if main_cast else 'N/A'}",
+        f"Director(s): {', '.join(directors) if directors else (movie.get('director') or 'N/A')}",
+        f"Runtime (minutes): {runtime or 'N/A'}",
         f"Average rating: {vote_average or 'N/A'} (votes: {vote_count or 'N/A'})",
-        f"Popularity score: {popularity or 'N/A'}",
+        f"Popularity score (range 0–1): {f'{popularity_value:.3f}' if isinstance(popularity_value, (int, float)) else 'N/A'}",
         f"Language: {movie.get('language') or 'N/A'}"
     ]
 
@@ -131,7 +149,13 @@ RULES:
 5. For genre questions:
    - If none of the genres in the user's question match any genre listed in the facts, respond: "I don't have that information."
    - If at least one of the genres matches a genre in the facts, answer "Yes" or "No" depending on whether the user's question is correct overall.
-6. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
+6. For questions about popularity:
+   - The popularity score is normalized between 0 (least popular) and 1 (most popular).
+   - If score ≥ 0.66, consider the movie "very popular".
+   - If 0.33 ≤ score < 0.66, consider it "moderately popular".
+   - If score < 0.33, consider it "less popular".
+   - Use this mapping to answer "Yes" or "No" for popularity-related questions.
+7. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
 
 The movie title is: "{movie.get("title").lower()}"
 The movie language is: "{movie.get("language").lower()}"
