@@ -146,16 +146,13 @@ RULES:
 3. If the guess is incorrect, respond:
    "No, that is not the movie or its franchise."
 4. For other questions that can be answered with the provided facts, respond only with "Yes" or "No".
-5. For genre questions:
-   - If none of the genres in the user's question match any genre listed in the facts, respond: "I don't have that information."
-   - If at least one of the genres matches a genre in the facts, answer "Yes" or "No" depending on whether the user's question is correct overall.
-6. For questions about popularity:
+5. For questions about popularity:
    - The popularity score is normalized between 0 (least popular) and 1 (most popular).
    - If score ≥ 0.66, consider the movie "very popular".
    - If 0.33 ≤ score < 0.66, consider it "moderately popular".
    - If score < 0.33, consider it "less popular".
    - Use this mapping to answer "Yes" or "No" for popularity-related questions.
-7. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
+6. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
 
 The movie title is: "{movie.get("title").lower()}"
 The movie language is: "{movie.get("language").lower()}"
