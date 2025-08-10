@@ -9,6 +9,16 @@ from dotenv import load_dotenv
 # -------------------------
 # Load datasets and prepare DataFrames
 # -------------------------
+def _safe_load_json(s):
+    if s is None:
+        return []
+    if isinstance(s, (list, dict)):
+        return s
+    try:
+        return json.loads(s)
+    except Exception:
+        return []
+
 ds = load_dataset("AiresPucrs/tmdb-5000-movies", split="train")
 data = ds.to_dict()
 df_tmdb = pl.DataFrame(data).with_columns([
@@ -22,6 +32,10 @@ df_tmdb_filtered = df_tmdb.select([
     pl.col("overview").cast(pl.Utf8),
 ]).with_columns([
     pl.lit(None).cast(pl.Utf8).alias("director")
+])
+df_tmdb_filtered = df_tmdb_filtered.with_columns([
+    pl.col("genres")
+      .map_elements(lambda x: ", ".join([g["name"] for g in _safe_load_json(x)]), return_dtype=pl.Utf8)
 ])
 
 bollywood_csv_url = "https://raw.githubusercontent.com/devensinghbhagtani/Bollywood-Movie-Dataset/main/IMDB-Movie-Dataset(2023-1951).csv"
@@ -67,16 +81,6 @@ session_movies = {}  # {session_id: movie_dict}
 # -------------------------
 # Helpers
 # -------------------------
-def _safe_load_json(s):
-    if s is None:
-        return []
-    if isinstance(s, (list, dict)):
-        return s
-    try:
-        return json.loads(s)
-    except Exception:
-        return []
-
 def get_or_create_movie(session_id: str):
     if session_id not in session_movies:
         selected_df = combined_df.sample(n=1)
@@ -177,7 +181,7 @@ Movie facts:
 Hint:
 """
     hint_completion = client.chat.completions.create(
-        model="gemma2-9b-it",
+        model="meta-llama/llama-guard-4-12b",
         messages=[{"role": "user", "content": hint_prompt}],
         temperature=0.7,
         max_completion_tokens=50,
