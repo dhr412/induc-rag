@@ -106,7 +106,7 @@ def build_facts_and_instruction(movie):
     facts = [
         f"Overview: {overview.strip() or 'N/A'}",
         f"Release date: {release_date or 'N/A'}",
-        f"Genres: {', '.join(genres_list) if genres_list else 'N/A'}",
+        f"Genres: {movie.get('genres') if movie.get('genres') else 'N/A'}",
         f"Main cast (top billed): {', '.join(main_cast) if main_cast else 'N/A'}",
         f"Director(s): {', '.join(directors) if directors else 'N/A'}",
         f"Runtime (minutes): {runtime or 'N/A'}",
@@ -163,7 +163,7 @@ def ask_question(user_question: str, session_id: str):
     )
 
     completion = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="gemma2-9b-it",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
         max_completion_tokens=50,
@@ -187,7 +187,7 @@ Movie facts:
 Hint:
 """
     hint_completion = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="gemma2-9b-it",
         messages=[{"role": "user", "content": hint_prompt}],
         temperature=0.7,
         max_completion_tokens=50,
