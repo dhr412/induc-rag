@@ -125,11 +125,13 @@ RULES:
 1. If the user explicitly guesses the movie (e.g., "is the movie X?" or "is it X?"),
    compare their guess (case-insensitive) to the hidden title and hidden franchise.
 2. If the guess matches exactly or clearly refers to the correct franchise, respond:
-   "Yes, that is correct! The movie is {movie.get("title").lower()}."
+   "Yes, that is correct! The movie is {movie.get("title").capitalize()}."
 3. If the guess is incorrect, respond:
    "No, that is not the movie or its franchise."
 4. For other questions that can be answered with the provided facts, respond only with "Yes" or "No".
-5. If the fact is missing from the provided facts, respond "I don't have that information."
+5. For genre questions:
+   - If none of the genres in the user's question match any genre listed in the facts, respond: "I don't have that information."
+   - If at least one of the genres matches a genre in the facts, answer "Yes" or "No" depending on whether the user's question is correct overall.
 6. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
 
 The movie title is: "{movie.get("title").lower()}"
