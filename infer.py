@@ -181,7 +181,7 @@ Movie facts:
 Hint:
 """
     hint_completion = client.chat.completions.create(
-        model="meta-llama/llama-guard-4-12b",
+        model="gemma2-9b-it",
         messages=[{"role": "user", "content": hint_prompt}],
         temperature=0.7,
         max_completion_tokens=50,
