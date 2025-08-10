@@ -161,7 +161,7 @@ def ask_question(user_question: str, session_id: str):
     )
 
     completion = client.chat.completions.create(
-        model="gemma2-9b-it",
+        model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
         max_completion_tokens=50,
@@ -185,7 +185,7 @@ Movie facts:
 Hint:
 """
     hint_completion = client.chat.completions.create(
-        model="gemma2-9b-it",
+        model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": hint_prompt}],
         temperature=0.7,
         max_completion_tokens=50,
