@@ -185,7 +185,7 @@ def ask_question(user_question: str, session_id: str):
     completion = client.chat.completions.create(
         model="gemma2-9b-it",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.0,
+        temperature=0.15,
         max_completion_tokens=50,
         top_p=1,
         stream=False,
