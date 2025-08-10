@@ -76,7 +76,8 @@ combined_df = pl.concat([df_tmdb_sample, df_bollywood_sample]).sample(fraction=1
 # -------------------------
 # Session store for movies
 # -------------------------
-session_movies = {}  # {session_id: movie_dict}
+session_movies = {}
+session_request_counts = {}
 
 # -------------------------
 # Helpers
@@ -146,7 +147,10 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # Public functions
 # -------------------------
 def ask_question(user_question: str, session_id: str):
+    session_request_counts[session_id] = session_request_counts.get(session_id, 0) + 1
     movie = get_or_create_movie(session_id)
+    if session_request_counts.get(session_id, 0) > 10:
+        return f"Game over! The movie was {movie.get('title')}"
     facts_block, system_instruction = build_facts_and_instruction(movie)
 
     prompt = (

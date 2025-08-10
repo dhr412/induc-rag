@@ -29,7 +29,7 @@ async def ask_movie_question(request: QuestionRequest, http_request: Request):
     try:
         answer = ask_question(request.question, session_id)
         resp_lower = answer.lower()
-        game_over = resp_lower.startswith("yes") and "correct" in resp_lower
+        game_over = "game over" in resp_lower or (resp_lower.startswith("yes") and "correct" in resp_lower)
         return {"answer": answer, "game_over": game_over, "session_id": session_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
