@@ -152,7 +152,7 @@ RULES:
    - If 0.33 ≤ score < 0.66, consider it "moderately popular".
    - If score < 0.33, consider it "less popular".
    - Use this mapping to answer "Yes" or "No" for popularity-related questions.
-6. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
+6. Never provide extra explanations or reveal the title unless the user guesses correctly.
 
 The movie title is: "{movie.get("title").lower()}"
 The movie language is: "{movie.get("language").lower()}"
