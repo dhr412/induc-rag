@@ -39,6 +39,8 @@ df_bollywood = df_bollywood_filtered.select([
     pl.col("genre").alias("genres").cast(pl.Utf8),
     pl.col("overview").cast(pl.Utf8),
     pl.col("director").cast(pl.Utf8),
+]).with_columns([
+    pl.lit("Hindi").alias("language")
 ])
 df_tmdb_simple = df_tmdb_filtered.select([
     "title",
@@ -46,7 +48,8 @@ df_tmdb_simple = df_tmdb_filtered.select([
     "genres",
     "overview",
 ]).with_columns([
-    pl.lit(None).cast(pl.Utf8).alias("director")
+    pl.lit(None).cast(pl.Utf8).alias("director"),
+    pl.lit("English").alias("language")
 ])
 
 df_bollywood_sample = df_bollywood.sample(n=150, seed=24)
@@ -89,6 +92,7 @@ facts = [
     f"Runtime (minutes): {runtime or 'N/A'}",
     f"Average rating: {vote_average or 'N/A'} (votes: {vote_count or 'N/A'})",
     f"Popularity score: {popularity or 'N/A'}",
+    f"Language: {movie.get('language') or 'N/A'}"
 ]
 
 facts_block = "\n".join(facts)
@@ -109,6 +113,7 @@ RULES:
 6. Never provide extra explanations or reveal the title unless the user explicitly asks or guesses correctly.
 
 The movie title is: "{movie.get("title").lower()}"
+The movie language is: "{movie.get("language").lower()}"
 """
 
 load_dotenv()
