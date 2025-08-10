@@ -107,9 +107,8 @@ def build_facts_and_instruction(movie):
         f"Overview: {overview.strip() or 'N/A'}",
         f"Release date: {release_date or 'N/A'}",
         f"Genres: {movie.get('genres') if movie.get('genres') else 'N/A'}",
-        f"Main cast (top billed): {', '.join(main_cast) if main_cast else 'N/A'}",
-        f"Director(s): {', '.join(directors) if directors else 'N/A'}",
-        f"Runtime (minutes): {runtime or 'N/A'}",
+        f"Main cast: {', '.join(main_cast) if main_cast else 'N/A'}",
+        f"Director(s): {', '.join(directors) if directors else 'N/A'}", 
         f"Average rating: {vote_average or 'N/A'} (votes: {vote_count or 'N/A'})",
         f"Popularity score: {popularity or 'N/A'}",
         f"Language: {movie.get('language') or 'N/A'}"
