@@ -23,7 +23,7 @@ ds = load_dataset("AiresPucrs/tmdb-5000-movies", split="train")
 data = ds.to_dict()
 df_tmdb = pl.DataFrame(data).with_columns([
     pl.col("popularity").cast(pl.Float64, strict=False)
-]).sort("popularity", descending=True).head(150)
+]).sort("popularity", descending=True).head(100)
 
 df_tmdb_filtered = df_tmdb.select([
     pl.col("title").cast(pl.Utf8),
@@ -69,8 +69,8 @@ df_tmdb_simple = df_tmdb_filtered.select([
     pl.lit("English").alias("language")
 ])
 
-df_bollywood_sample = df_bollywood.sample(n=150, seed=24)
-df_tmdb_sample = df_tmdb_simple.sample(n=150, seed=24)
+df_bollywood_sample = df_bollywood.sample(n=100, seed=24)
+df_tmdb_sample = df_tmdb_simple.sample(n=100, seed=24)
 combined_df = pl.concat([df_tmdb_sample, df_bollywood_sample]).sample(fraction=1.0, shuffle=True)
 
 # -------------------------
