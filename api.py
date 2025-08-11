@@ -8,8 +8,8 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Session-ID"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class QuestionRequest(BaseModel):
