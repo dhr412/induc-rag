@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Guessing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .movie-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            word-wrap: break-word;
+            position: relative;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .question-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .question-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #999;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .welcome-message .emoji {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .movie-icon {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🎬 Movie Guessing Game</h1>
+            <p>Ask yes/no questions to guess the movie!</p>
+            <div class="movie-icon">🍿</div>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="welcome-message">
+                <span class="emoji">🎭</span>
+                <strong>Welcome to the Movie Guessing Game!</strong><br>
+                I'm thinking of a movie. Ask me yes/no questions to figure out what it is!<br>
+                <em>Example: "Is it an action movie?" or "Was it made after 2000?"</em>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    class="question-input" 
+                    id="questionInput"
+                    placeholder="Ask a yes/no question about the movie..."
+                    maxlength="200"
+                >
+                <button class="send-btn" id="sendBtn" onclick="sendQuestion()">Ask</button>
+            </div>
+            <div class="game-controls">
+                <button class="control-btn" onclick="newGame()">New Game</button>
+                <button class="control-btn" onclick="giveHint()">Hint</button>
+                <button class="control-btn" onclick="makeGuess()">Make Guess</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_CONFIG = {
+            baseUrl: 'https://induc-bot.onrender.com',
+            askQuestion: 'https://induc-bot.onrender.com/ask',
+            hint: 'https://induc-bot.onrender.com/hint'
+        };
+
+        let isLoading = false;
+        let sessionId = null;
+
+        // Initialize the game
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('questionInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !isLoading) {
+                    sendQuestion();
+                }
+            });
+        });
+
+        function addMessage(text, isUser = false, isLoading = false) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            let messageContent = '';
+            if (!isUser) {
+                messageContent += '<div class="bot-avatar">🤖</div>';
+            }
+            
+            messageContent += `<div class="message-bubble">`;
+            if (isLoading) {
+                messageContent += `<div class="loading">
+                    <span class="typing-indicator"></span>
+                    <span class="typing-indicator"></span>
+                    <span class="typing-indicator"></span>
+                </div>`;
+            } else {
+                messageContent += text;
+            }
+            messageContent += `</div>`;
+            
+            messageDiv.innerHTML = messageContent;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        async function sendQuestion() {
+            const input = document.getElementById('questionInput');
+            const question = input.value.trim();
+            
+            if (!question || isLoading) return;
+            
+            // Add user message
+            addMessage(question, true);
+            input.value = '';
+            
+            // Show loading
+            isLoading = true;
+            document.getElementById('sendBtn').disabled = true;
+            const loadingMessage = addMessage('', false, true);
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add session ID to headers if we have one
+                if (sessionId) {
+                    headers['X-Session-ID'] = sessionId;
+                }
+                
+                const response = await fetch(API_CONFIG.askQuestion, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ question: question })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Save session ID from first response
+                if (data.session_id && !sessionId) {
+                    sessionId = data.session_id;
+                    console.log('Session ID saved:', sessionId);
+                }
+                
+                // Remove loading message
+                loadingMessage.remove();
+                
+                // Add bot response
+                const responseText = data.answer || "I'm not sure about that. Try asking a different yes/no question!";
+                addMessage(responseText);
+                
+                // Check if game is over
+                if (data.game_over) {
+                    addMessage("🎉 Game Over! Would you like to start a new game?");
+                }
+                
+            } catch (error) {
+                // Remove loading message
+                loadingMessage.remove();
+                
+                addMessage("Sorry, I'm having trouble connecting to the game server. Please try again!");
+                console.error('API Error:', error);
+            }
+            
+            isLoading = false;
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        async function newGame() {
+            try {
+                // Clear the session ID to start fresh
+                sessionId = null;
+                
+                // Clear chat
+                const chatArea = document.getElementById('chatArea');
+                chatArea.innerHTML = `
+                    <div class="welcome-message">
+                        <span class="emoji">🎭</span>
+                        <strong>New Game Started!</strong><br>
+                        I'm thinking of a different movie now. Ask me yes/no questions to figure out what it is!
+                    </div>
+                `;
+                
+                addMessage("New game started! I'm thinking of a movie. Ask your first question to begin! 🎬");
+                
+            } catch (error) {
+                console.error('New Game Error:', error);
+                addMessage("New game started! I'm thinking of a movie...");
+            }
+        }
+
+        async function giveHint() {
+            if (isLoading || !sessionId) {
+                if (!sessionId) {
+                    addMessage("Please ask a question first to start the game!", false);
+                }
+                return;
+            }
+            
+            // Show loading
+            isLoading = true;
+            const loadingMessage = addMessage('', false, true);
+            
+            try {
+                const response = await fetch(API_CONFIG.hint, {
+                    method: 'GET',
+                    headers: {
+                        'X-Session-ID': sessionId
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                loadingMessage.remove();
+                
+                addMessage(data.hint || "Here's a hint: It's a very popular movie! 🎬");
+                
+            } catch (error) {
+                // Remove loading message
+                loadingMessage.remove();
+                
+                console.error('Hint Error:', error);
+                addMessage("Sorry, I couldn't get a hint right now. Try asking more questions!");
+            }
+            
+            isLoading = false;
+        }
+
+        async function makeGuess() {
+            const guess = prompt("What movie do you think it is?");
+            if (!guess || isLoading || !sessionId) {
+                if (!sessionId && guess) {
+                    addMessage("Please ask a question first to start the game!", false);
+                }
+                return;
+            }
+            
+            // Since there's no specific guess endpoint, we'll ask it as a question
+            addMessage(`Is it "${guess}"?`, true);
+            
+            // Show loading
+            isLoading = true;
+            document.getElementById('sendBtn').disabled = true;
+            const loadingMessage = addMessage('', false, true);
+            
+            try {
+                const response = await fetch(API_CONFIG.askQuestion, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-ID': sessionId
+                    },
+                    body: JSON.stringify({ question: `Is the movie "${guess}"?` })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                loadingMessage.remove();
+                
+                if (data.answer && (data.answer.toLowerCase().includes('yes') || data.answer.toLowerCase().includes('correct'))) {
+                    addMessage(`🎉 ${data.answer} Congratulations! You guessed it correctly! Want to play again?`);
+                } else {
+                    addMessage(`${data.answer} Keep trying or ask more questions!`);
+                }
+                
+                // Check if game is over
+                if (data.game_over) {
+                    addMessage("🎉 Game Over! Would you like to start a new game?");
+                }
+                
+            } catch (error) {
+                // Remove loading message
+                loadingMessage.remove();
+                
+                addMessage("Sorry, I couldn't process your guess. Please try again!");
+                console.error('Guess Error:', error);
+            }
+            
+            isLoading = false;
+            document.getElementById('sendBtn').disabled = false;
+        }
+    </script>
+</body>
+</html>
